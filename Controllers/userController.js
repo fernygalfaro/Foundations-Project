@@ -1,4 +1,6 @@
 const userService = require('../Services/userService');
+const jwt = require('jsonwebtoken');
+const secretKey = "secret-key";
 const userController = {
     async getUser(req, res) {
       try {
@@ -8,14 +10,44 @@ const userController = {
         res.status(404).json({ error: err.message });
       }
     },
+    async getUserByUsername(req, res){
+      try{
+        const { username } = req.params;
+        const user = await userService.getUserByUsername(username);
+        res.json(user);
+      }catch (err){
+        res.status(404).json({error: err.message});
+      }
+    },
+    async login(req,res){
+      const {username, password} = req.body;
+      const data = await userService.validateLogin(username, password);
+      if(data){
+        const token = jwt.sign(
+            {
+              username: data.username,
+              role: data.role
+              
+            },
+                secretKey,
+            { 
+                expiresIn: "5m"
+          });
+
+        res.status(200).json({message: "success login ", token});
+      }
+      else res.status(401).json({ message: "Inavlid credentials for login"});
+
+    },
     async createUser(req, res){
-        try{
-            const { userID, password, username } = req.body;
-            const addedUser = await userService.createUser(userID, password, username);
-            res.status(201).json(addedUser);
-        }catch(err){
-            res.status(400).json({error: err.message});
-        }
+      const addedUser = await userService.createUser(req.body);
+      if (addedUser && addedUser.error) {
+          res.status(400).json({ message: addedUser.error });
+      } else if (addedUser) {
+          res.status(201).json({ message: `Created User ${JSON.stringify(req.body)}` });
+      } else {
+          res.status(400).json({ message: "User not created", data: req.body });
+      }
     },
     async deleteUser(req, res){
       try{
@@ -38,4 +70,13 @@ const userController = {
     }
   }
 };
+function validatePostUser(req, res, next){
+  const user = req.body;
+  if(user.username && user.password){
+      next();
+  }else{
+      res.status(400).json({message: "Invalid username or password", data: user});
+  }
+}
 module.exports = userController;
+module.exports.validatePostUser = validatePostUser;

@@ -1,8 +1,8 @@
-const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient, GetCommand, PutCommand, DeleteCommand, UpdateCommand} = require("@aws-sdk/lib-dynamodb");
+const { DynamoDBClient} = require("@aws-sdk/client-dynamodb");
+const { DynamoDBDocumentClient, GetCommand, PutCommand, DeleteCommand, UpdateCommand, ScanCommand } = require("@aws-sdk/lib-dynamodb");
 const client = new DynamoDBClient({region: "us-east-2"});
-
 const documentClient = DynamoDBDocumentClient.from(client);
+const logger = require ("../logger");
 
 const TABLE_NAME = "Users";
 
@@ -21,16 +21,33 @@ const userDAO = {
             return null;
         }
     },
+    async getUserByUsername(username){
+        const command = new ScanCommand({
+            TableName : TABLE_NAME,
+            FilterExpression: "#username = :username",
+            ExpressionAttributeNames: {"#username": "username"},
+            ExpressionAttributeValues: {":username":  username}
+        });
+        try{
+            const data = await documentClient.send(command);
+            logger.info(`SCAN command to database complete ${JSON.stringify(data)}`);
+            return data.Items?.[0] || null;
+        }catch(err){
+            console.log("Could not find username", err);
+            return null; 
+        }
+    },
     async putUser(user) {
         const command = new PutCommand({
             TableName: TABLE_NAME,
             Item: user,
         });
         try {
-            await documentClient.send(command);
-            return { message: "User added"};
+            const data =  await documentClient.send(command);
+            logger.info(`PUT command for user completed ${JSON.stringify(data)}` );
+            return data;
         }catch(err){
-            console.error("Error adding user", err);
+            logger.error(err);
             return null;
         }
     },
