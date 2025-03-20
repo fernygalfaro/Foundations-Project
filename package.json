@@ -4,7 +4,7 @@
   "description": "Individual project for Revature LLC",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest --coverage"
   },
   "repository": {
     "type": "git",
@@ -31,5 +31,15 @@
   },
   "devDependencies": {
     "jest": "^29.7.0"
+  },
+  "jest": {
+    "collectCoverage": true,
+    "coverageDirectory": "coverage",
+    "coverageReporters": ["text", "html"],
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "/tests",
+      "logger.js"
+    ]
   }
 }

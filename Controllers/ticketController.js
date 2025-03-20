@@ -1,58 +1,64 @@
 const ticketService = require('../Services/ticketService');
 
 
-const ticketController = {
-async getTicket(req, res){
-      try{  
+function handleError(res, err, statusCode = 400) {
+    res.status(statusCode).json({ error: err.message });
+}
+
+async function getTicket(req, res) {
+    try {
         const ticket = await ticketService.getTicket(req.params.id);
         res.json(ticket);
-    } catch(err){
-        res.status(404).json({ error: err.message });
+    } catch (err) {
+        handleError(res, err, 404);
     }
-},
-async createTicket(req, res){
-        try{
-            if (!req.user || !req.user.username) {
-                return res.status(401).json({ error: "User not authenticated" });
-            }
-            const { ticketID, amount, description, status} = req.body;
-            const username = req.user.username;
-            const ticket = await ticketService.postTicket(ticketID, amount, description, status, username);
-            res.status(201).json(ticket);
-    }catch(err){
-        res.status(400).json({error: err.message});
+}
+
+async function createTicket(req, res) {
+    try {
+        if (!req.user || !req.user.username) {
+            return res.status(401).json({ error: "User not authenticated" });
+        }
+        const { ticketID, amount, description, status, type } = req.body;
+        const username = req.user.username;
+        const ticket = await ticketService.postTicket(ticketID, amount, description, status, username, type);
+        res.status(201).json(ticket);
+    } catch (err) {
+        handleError(res, err);
     }
-},
-async deleteTicket(req, res){
-    try{
+}
+
+async function deleteTicket(req, res) {
+    try {
         const deletedResult = await ticketService.deleteTicket(req.params.id);
         res.json(deletedResult);
-    }catch(err){
-        res.stus(400).json({error: err.message})
+    } catch (err) {
+        handleError(res, err);
     }
-},
-async updateTicket(req, res) {
+}
+
+async function updateTicket(req, res) {
     try {
-        // Ensure the user is authenticated and has the Manager role
         if (!req.user || req.user.role !== "Manager") {
             return res.status(403).json({ error: "Access denied. Only Managers can update ticket status." });
         }
 
         const { status } = req.body;
         const ticketID = req.params.id;
+        const processedBy = req.user.username;
 
-        // Validate that status is provided
         if (!status) {
             return res.status(400).json({ error: "Status field is required for update." });
         }
 
-        const updatedResult = await ticketService.updateTicket(ticketID, status);
+        const updatedResult = await ticketService.updateTicket(ticketID, status, processedBy);
         res.json(updatedResult);
-    }catch(err){
-        res.status(400).json({ error: err.message});
+    } catch (err) {
+        handleError(res, err);
     }
-},
-async getTicketsByUsername(req, res) {
+}
+
+async function getTicketsByUsername(req, res) {
     try {
         if (!req.user || !req.user.username) {
             return res.status(401).json({ error: "User not authenticated" });
@@ -62,9 +68,45 @@ async getTicketsByUsername(req, res) {
         const tickets = await ticketService.getTicketsByUsername(username);
         res.json(tickets);
     } catch (err) {
-        res.status(404).json({ error: err.message });
+        handleError(res, err, 404);
     }
 }
 
+async function getPendingTickets(req, res) {
+    try {
+        if (!req.user || req.user.role !== "Manager") {
+            return res.status(403).json({ error: "Access denied. Only Managers can view pending tickets." });
+        }
+        const { status } = req.query;
+        if (!status) {
+            return res.status(400).json({ error: "status parameter is required" });
+        }
+        const tickets = await ticketService.getPendingTickets(status);
+        res.json(tickets);
+    } catch (err) {
+        handleError(res, err, 404);
+    }
+}
+
+async function getTypeTickets(req, res) {
+    try {
+        const { type } = req.query;
+        if (!type) {
+            return res.status(400).json({ error: "type parameter is required" });
+        }
+        const tickets = await ticketService.getTypeTickets(type);
+        res.json(tickets);
+    } catch (err) {
+        handleError(res, err, 404);
+    }
+}
+
+module.exports = {
+    getTicket,
+    createTicket,
+    deleteTicket,
+    updateTicket,
+    getTicketsByUsername,
+    getPendingTickets,
+    getTypeTickets
 };
-module.exports = ticketController;
