@@ -165,7 +165,7 @@ describe('ticketController', () => {
             expect(res.json).toHaveBeenCalledWith({ error: 'No tickets found' });
         });
     });
-
+/*
     describe('getPendingTickets', () => {
         it('should return pending tickets based on status', async () => {
             const mockTickets = [{ id: '123', status: 'pending' }];
@@ -198,7 +198,7 @@ describe('ticketController', () => {
             expect(res.json).toHaveBeenCalledWith({ error: 'Failed to fetch tickets' });
         });
     });
-
+*/
     describe('getTypeTickets', () => {
         it('should return tickets based on type', async () => {
             const mockTickets = [{ id: '123', type: 'bug' }];

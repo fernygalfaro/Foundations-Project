@@ -16,5 +16,5 @@ router.delete('/:id', userController.deleteUser);
 router.put('/:id/updatePassword', userController.updateUserPassword);
 //login user 
 router.post('/login', userController.login);
-router.put("/updateUser/:id", authMiddleware, userController.updateUserRole);
+router.put("/update", authMiddleware, userController.updateUserRole);
 module.exports = router;

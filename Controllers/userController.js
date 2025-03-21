@@ -75,7 +75,7 @@ async function updateUserRole(req, res) {
             return res.status(403).json({ error: "Access denied. Only Managers can update user role." });
         }
         const { role } = req.body;
-        const userID = req.params.id;
+        const { userID } = req.query;
         if (!role) {
             return res.status(400).json({ error: "Role field is required for update" });
         }

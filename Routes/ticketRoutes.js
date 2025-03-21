@@ -17,5 +17,5 @@ router.put('/update/:id', authMiddleware, ticketController.updateTicket);
 //retrieve all pending tickets
 router.get("/status", authMiddleware, ticketController.getPendingTickets);
 //retrieve all tickets by type
-router.get("/type", authMiddleware, ticketController.getTypeTickets);
+router.get("/filterBy", authMiddleware, ticketController.getTypeTickets);
 module.exports = router;
